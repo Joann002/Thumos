@@ -30,5 +30,6 @@ Route::middleware('auth')->group(function () {
         ->except('show');
 
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('calendar/{date}', [CalendarController::class, 'show'])->name('calendar.show');
     Route::get('heatmap', [HeatmapController::class, 'index'])->name('heatmap.index');
 });
