@@ -24,7 +24,13 @@ const CELL = 12;
 const GAP = 3;
 const STEP = CELL + GAP;
 
-const colors = ['#e8eaed', '#c3e6cb', '#7bc97f', '#38a14a', '#176f2c'];
+const colors = [
+    'var(--heat-0)',
+    'var(--heat-1)',
+    'var(--heat-2)',
+    'var(--heat-3)',
+    'var(--heat-4)',
+];
 
 const width = computed(() => props.weeks.length * STEP);
 const height = 7 * STEP;
@@ -52,7 +58,7 @@ const formatDate = (date) =>
                             :width="CELL"
                             :height="CELL"
                             :fill="cell.future ? 'transparent' : colors[cell.level]"
-                            :stroke="cell.future ? 'transparent' : '#dfe2e6'"
+                            :stroke="cell.future ? 'transparent' : 'var(--heat-line)'"
                             stroke-width="1"
                         >
                             <title v-if="!cell.future">{{ formatDate(cell.date) }} — {{ cell.count }} habitude(s)</title>
@@ -72,7 +78,7 @@ const formatDate = (date) =>
                         :width="CELL"
                         :height="CELL"
                         :fill="color"
-                        stroke="#dfe2e6"
+                        stroke="var(--heat-line)"
                         stroke-width="1"
                     />
                 </svg>

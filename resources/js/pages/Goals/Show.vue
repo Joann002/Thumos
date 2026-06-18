@@ -2,6 +2,7 @@
 import { Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import draggable from 'vuedraggable';
+import Icon from '../../Components/Icon.vue';
 
 const props = defineProps({
     goal: {
@@ -65,32 +66,38 @@ const deleteGoal = () => {
 
 <template>
     <div class="stack">
-        <div class="row row--between">
-            <h1 class="page-title" style="margin: 0">{{ goal.title }}</h1>
-            <div class="row">
-                <Link :href="`/goals/${goal.id}/edit`" class="btn btn--ghost">Modifier</Link>
-                <button class="btn btn--danger" @click="deleteGoal">Supprimer</button>
+        <div>
+            <Link href="/goals" class="row muted" style="gap: 0.35rem; font-size: 0.85rem; margin-bottom: 0.75rem; display: inline-flex">
+                <Icon name="arrowLeft" :size="15" /> Objectifs
+            </Link>
+            <div class="page-head" style="margin-bottom: 0">
+                <h1 class="page-title">{{ goal.title }}</h1>
+                <div class="row" style="gap: 0.4rem">
+                    <Link :href="`/goals/${goal.id}/edit`" class="btn btn--ghost btn--sm"><Icon name="edit" :size="15" /> Modifier</Link>
+                    <button class="btn btn--danger btn--sm" @click="deleteGoal"><Icon name="trash" :size="15" /> Supprimer</button>
+                </div>
             </div>
         </div>
 
-        <div class="card stack">
-            <div class="row">
-                <span class="badge" :class="{ 'badge--done': goal.status === 'done' }">
+        <div class="card stack--sm">
+            <div class="row" style="flex-wrap: wrap">
+                <span class="badge" :class="{ 'badge--done': goal.status === 'done', 'badge--accent': goal.status === 'active' }">
                     {{ statusLabels[goal.status] ?? goal.status }}
                 </span>
                 <span v-if="goal.category" class="badge">{{ goal.category }}</span>
-                <span v-if="goal.target_date" class="muted">
+                <span v-if="goal.target_date" class="muted" style="font-size: 0.85rem">
                     Échéance : {{ new Date(goal.target_date).toLocaleDateString('fr-FR') }}
                 </span>
             </div>
-            <p v-if="goal.description" style="margin: 0; white-space: pre-wrap">{{ goal.description }}</p>
+            <p v-if="goal.description" style="margin: 0; white-space: pre-wrap; color: var(--text-soft)">{{ goal.description }}</p>
         </div>
 
-        <div class="card stack">
+        <div class="card stack--sm">
             <div class="row row--between">
                 <strong>Sous-tâches</strong>
-                <span class="muted">{{ progress }}%</span>
+                <span class="muted tabular">{{ progress }}%</span>
             </div>
+            <div class="progress" v-if="tasks.length"><div class="progress__bar" :style="{ width: progress + '%' }"></div></div>
 
             <draggable
                 v-if="tasks.length"
@@ -102,10 +109,10 @@ const deleteGoal = () => {
             >
                 <template #item="{ element: task }">
                     <li class="checklist__item" :class="{ 'checklist__item--done': task.done }">
-                        <span class="drag-handle muted" style="cursor: grab">⠿</span>
+                        <span class="drag-handle muted" style="cursor: grab; display: inline-flex"><Icon name="grip" :size="16" /></span>
                         <input type="checkbox" :checked="task.done" @change="toggleTask(task)" />
-                        <span style="flex: 1">{{ task.title }}</span>
-                        <button class="btn btn--danger" @click="deleteTask(task)">Suppr.</button>
+                        <span class="checklist__title" style="flex: 1">{{ task.title }}</span>
+                        <button class="icon-btn" style="width: 30px; height: 30px" title="Supprimer" @click="deleteTask(task)"><Icon name="trash" :size="15" /></button>
                     </li>
                 </template>
             </draggable>
@@ -119,13 +126,9 @@ const deleteGoal = () => {
                     class="input"
                     placeholder="Ajouter une sous-tâche…"
                 />
-                <button type="submit" class="btn" :disabled="newTask.processing">Ajouter</button>
+                <button type="submit" class="btn" :disabled="newTask.processing"><Icon name="plus" :size="16" /> Ajouter</button>
             </form>
             <span v-if="newTask.errors.title" class="error">{{ newTask.errors.title }}</span>
-        </div>
-
-        <div>
-            <Link href="/goals" class="muted">← Retour aux objectifs</Link>
         </div>
     </div>
 </template>

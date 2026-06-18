@@ -30,6 +30,8 @@ heatmap SVG).
 | Domaine | Fonctionnalité |
 |---|---|
 | Comptes | Inscription, connexion, déconnexion (Laravel Fortify) — données isolées par utilisateur |
+| Tableau de bord | Écran d'accueil « Aujourd'hui » : mini-stats, habitudes du jour, prochaines échéances |
+| Interface | UI dashboard sombre/clair (toggle persisté), layout sidebar, icônes SVG, tokens sémantiques |
 | Objectifs | CRUD complet (titre, description, catégorie, date cible, statut) |
 | Objectifs | Sous-tâches / checklist réordonnable par objectif |
 | Habitudes | CRUD (nom, fréquence quotidienne ou hebdo, jours concernés) |

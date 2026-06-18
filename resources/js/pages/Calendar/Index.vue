@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import Icon from '../../Components/Icon.vue';
 
 defineProps({
     days: {
@@ -29,17 +30,17 @@ const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 <template>
     <div>
-        <div class="row row--between">
-            <h1 class="page-title" style="margin: 0; text-transform: capitalize">{{ label }}</h1>
-            <div class="row">
-                <Link :href="`/calendar?year=${prev.year}&month=${prev.month}`" class="btn btn--ghost">← Préc.</Link>
-                <Link href="/calendar" class="btn btn--ghost">Aujourd'hui</Link>
-                <Link :href="`/calendar?year=${next.year}&month=${next.month}`" class="btn btn--ghost">Suiv. →</Link>
+        <div class="page-head">
+            <h1 class="page-title" style="text-transform: capitalize">{{ label }}</h1>
+            <div class="row" style="gap: 0.4rem">
+                <Link :href="`/calendar?year=${prev.year}&month=${prev.month}`" class="icon-btn" title="Mois précédent"><Icon name="chevronLeft" :size="18" /></Link>
+                <Link href="/calendar" class="btn btn--ghost btn--sm">Aujourd'hui</Link>
+                <Link :href="`/calendar?year=${next.year}&month=${next.month}`" class="icon-btn" title="Mois suivant"><Icon name="chevronRight" :size="18" /></Link>
             </div>
         </div>
 
-        <p class="muted" style="margin-top: 0.5rem">
-            Vert = habitudes faites dans la journée. Encadré violet = échéance d'un objectif.
+        <p class="muted" style="margin-top: -0.75rem; font-size: 0.85rem">
+            « ✓ » = habitudes faites ce jour-là · pastille violette = échéance d'un objectif.
         </p>
 
         <div class="calendar" style="margin-top: 1rem">
