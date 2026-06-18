@@ -109,10 +109,6 @@ class StreakCalculator
 
     private function isScheduled(Habit $habit, Carbon $date): bool
     {
-        if ($habit->frequency === 'weekly' && ! empty($habit->days_of_week)) {
-            return in_array($date->dayOfWeekIso, $habit->days_of_week, true);
-        }
-
-        return true;
+        return $habit->isDueOn($date);
     }
 }
