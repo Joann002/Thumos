@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\GoalTaskController;
+use App\Http\Controllers\HabitController;
+use App\Http\Controllers\HabitLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/goals');
@@ -12,3 +14,6 @@ Route::post('goals/{goal}/tasks', [GoalTaskController::class, 'store'])->name('g
 Route::post('goals/{goal}/tasks/reorder', [GoalTaskController::class, 'reorder'])->name('goals.tasks.reorder');
 Route::patch('tasks/{task}', [GoalTaskController::class, 'update'])->name('tasks.update');
 Route::delete('tasks/{task}', [GoalTaskController::class, 'destroy'])->name('tasks.destroy');
+
+Route::resource('habits', HabitController::class)->except('show');
+Route::post('habits/{habit}/toggle', [HabitLogController::class, 'toggle'])->name('habits.toggle');

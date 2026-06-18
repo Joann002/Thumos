@@ -142,8 +142,8 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 
 ## Roadmap
 
-- [ ] CRUD Goals + GoalTasks (checklist interactive avec drag & drop)
-- [ ] CRUD Habits + interface « check du jour »
+- [x] CRUD Goals + GoalTasks (checklist interactive avec drag & drop)
+- [x] CRUD Habits + interface « check du jour »
 - [ ] Calcul et affichage des streaks
 - [ ] Journal avec entrées datées
 - [ ] Vue calendrier combinant objectifs + habitudes

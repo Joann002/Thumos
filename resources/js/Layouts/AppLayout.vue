@@ -13,6 +13,7 @@ const flash = computed(() => page.props.flash?.success);
                 <Link href="/" class="app-header__brand">Thumos</Link>
                 <nav class="app-nav">
                     <Link href="/goals">Objectifs</Link>
+                    <Link href="/habits">Habitudes</Link>
                 </nav>
             </div>
         </header>
