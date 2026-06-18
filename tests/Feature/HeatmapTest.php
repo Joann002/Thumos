@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Habit;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -11,10 +11,14 @@ class HeatmapTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
         Carbon::setTestNow('2026-06-18');
     }
 
@@ -37,8 +41,8 @@ class HeatmapTest extends TestCase
 
     public function test_heatmap_counts_completions_per_day(): void
     {
-        $habitA = Habit::create(['name' => 'A', 'frequency' => 'daily']);
-        $habitB = Habit::create(['name' => 'B', 'frequency' => 'daily']);
+        $habitA = $this->user->habits()->create(['name' => 'A', 'frequency' => 'daily']);
+        $habitB = $this->user->habits()->create(['name' => 'B', 'frequency' => 'daily']);
 
         $habitA->logs()->create(['date' => '2026-06-18', 'completed' => true]);
         $habitB->logs()->create(['date' => '2026-06-18', 'completed' => true]);

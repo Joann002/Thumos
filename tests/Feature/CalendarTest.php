@@ -2,8 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Goal;
-use App\Models\Habit;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -12,10 +11,14 @@ class CalendarTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
         Carbon::setTestNow('2026-06-18');
     }
 
@@ -38,10 +41,10 @@ class CalendarTest extends TestCase
 
     public function test_calendar_exposes_completions_and_deadlines(): void
     {
-        $habit = Habit::create(['name' => 'Lire', 'frequency' => 'daily']);
+        $habit = $this->user->habits()->create(['name' => 'Lire', 'frequency' => 'daily']);
         $habit->logs()->create(['date' => '2026-06-18', 'completed' => true]);
 
-        Goal::create([
+        $this->user->goals()->create([
             'title' => 'Rendre le projet',
             'status' => 'active',
             'target_date' => '2026-06-18',

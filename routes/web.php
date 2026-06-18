@@ -11,19 +11,21 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/goals');
 
-Route::resource('goals', GoalController::class);
+Route::middleware('auth')->group(function () {
+    Route::resource('goals', GoalController::class);
 
-Route::post('goals/{goal}/tasks', [GoalTaskController::class, 'store'])->name('goals.tasks.store');
-Route::post('goals/{goal}/tasks/reorder', [GoalTaskController::class, 'reorder'])->name('goals.tasks.reorder');
-Route::patch('tasks/{task}', [GoalTaskController::class, 'update'])->name('tasks.update');
-Route::delete('tasks/{task}', [GoalTaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::post('goals/{goal}/tasks', [GoalTaskController::class, 'store'])->name('goals.tasks.store');
+    Route::post('goals/{goal}/tasks/reorder', [GoalTaskController::class, 'reorder'])->name('goals.tasks.reorder');
+    Route::patch('tasks/{task}', [GoalTaskController::class, 'update'])->name('tasks.update');
+    Route::delete('tasks/{task}', [GoalTaskController::class, 'destroy'])->name('tasks.destroy');
 
-Route::resource('habits', HabitController::class)->except('show');
-Route::post('habits/{habit}/toggle', [HabitLogController::class, 'toggle'])->name('habits.toggle');
+    Route::resource('habits', HabitController::class)->except('show');
+    Route::post('habits/{habit}/toggle', [HabitLogController::class, 'toggle'])->name('habits.toggle');
 
-Route::resource('journal', JournalEntryController::class)
-    ->parameters(['journal' => 'entry'])
-    ->except('show');
+    Route::resource('journal', JournalEntryController::class)
+        ->parameters(['journal' => 'entry'])
+        ->except('show');
 
-Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
-Route::get('heatmap', [HeatmapController::class, 'index'])->name('heatmap.index');
+    Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('heatmap', [HeatmapController::class, 'index'])->name('heatmap.index');
+});

@@ -6,6 +6,7 @@ use App\Models\JournalEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -13,9 +14,9 @@ class JournalEntryController extends Controller
 {
     private const MOODS = ['great', 'good', 'neutral', 'bad', 'awful'];
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $entries = JournalEntry::query()
+        $entries = $request->user()->journalEntries()
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
@@ -34,7 +35,7 @@ class JournalEntryController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        JournalEntry::create($this->validateEntry($request));
+        $request->user()->journalEntries()->create($this->validateEntry($request));
 
         return redirect()->route('journal.index')
             ->with('success', 'Entrée ajoutée.');
@@ -42,6 +43,8 @@ class JournalEntryController extends Controller
 
     public function edit(JournalEntry $entry): Response
     {
+        $this->authorizeOwner($entry);
+
         return Inertia::render('Journal/Edit', [
             'entry' => $entry,
         ]);
@@ -49,6 +52,8 @@ class JournalEntryController extends Controller
 
     public function update(Request $request, JournalEntry $entry): RedirectResponse
     {
+        $this->authorizeOwner($entry);
+
         $entry->update($this->validateEntry($request));
 
         return redirect()->route('journal.index')
@@ -57,10 +62,17 @@ class JournalEntryController extends Controller
 
     public function destroy(JournalEntry $entry): RedirectResponse
     {
+        $this->authorizeOwner($entry);
+
         $entry->delete();
 
         return redirect()->route('journal.index')
             ->with('success', 'Entrée supprimée.');
+    }
+
+    private function authorizeOwner(JournalEntry $entry): void
+    {
+        abort_if($entry->user_id !== Auth::id(), 403);
     }
 
     /**

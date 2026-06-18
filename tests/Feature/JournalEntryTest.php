@@ -2,13 +2,23 @@
 
 namespace Tests\Feature;
 
-use App\Models\JournalEntry;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class JournalEntryTest extends TestCase
 {
     use RefreshDatabase;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
+    }
 
     public function test_journal_index_is_rendered(): void
     {
@@ -28,6 +38,7 @@ class JournalEntryTest extends TestCase
         $this->assertDatabaseHas('journal_entries', [
             'content' => 'Bonne journée de code.',
             'mood' => 'good',
+            'user_id' => $this->user->id,
         ]);
     }
 
@@ -48,7 +59,7 @@ class JournalEntryTest extends TestCase
 
     public function test_an_entry_can_be_updated(): void
     {
-        $entry = JournalEntry::create([
+        $entry = $this->user->journalEntries()->create([
             'date' => '2026-06-17',
             'content' => 'Ancien contenu',
             'mood' => 'neutral',
@@ -69,10 +80,18 @@ class JournalEntryTest extends TestCase
 
     public function test_an_entry_can_be_deleted(): void
     {
-        $entry = JournalEntry::create(['date' => '2026-06-18', 'content' => 'À supprimer']);
+        $entry = $this->user->journalEntries()->create(['date' => '2026-06-18', 'content' => 'À supprimer']);
 
         $this->delete("/journal/{$entry->id}")->assertRedirect('/journal');
 
         $this->assertDatabaseMissing('journal_entries', ['id' => $entry->id]);
+    }
+
+    public function test_a_user_cannot_edit_another_users_entry(): void
+    {
+        $other = User::factory()->create();
+        $entry = $other->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Privé']);
+
+        $this->get("/journal/{$entry->id}/edit")->assertForbidden();
     }
 }

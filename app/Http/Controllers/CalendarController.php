@@ -15,6 +15,7 @@ class CalendarController extends Controller
     public function index(Request $request): Response
     {
         $today = Carbon::today();
+        $userId = $request->user()->id;
 
         $month = Carbon::create(
             $request->integer('year', $today->year),
@@ -27,17 +28,19 @@ class CalendarController extends Controller
 
         $completions = HabitLog::query()
             ->where('completed', true)
+            ->whereRelation('habit', 'user_id', $userId)
             ->whereBetween('date', [$gridStart, $gridEnd])
             ->get()
             ->groupBy(fn (HabitLog $log) => $log->date->toDateString());
 
         $deadlines = Goal::query()
+            ->where('user_id', $userId)
             ->whereNotNull('target_date')
             ->whereBetween('target_date', [$gridStart, $gridEnd])
             ->get(['id', 'title', 'target_date'])
             ->groupBy(fn (Goal $goal) => $goal->target_date->toDateString());
 
-        $habitCount = Habit::count();
+        $habitCount = Habit::where('user_id', $userId)->count();
 
         $days = [];
         $cursor = $gridStart->copy();

@@ -7,16 +7,17 @@ use App\Services\StreakCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HabitController extends Controller
 {
-    public function index(StreakCalculator $streaks): Response
+    public function index(Request $request, StreakCalculator $streaks): Response
     {
         $today = Carbon::today();
 
-        $habits = Habit::query()
+        $habits = $request->user()->habits()
             ->with('logs')
             ->orderBy('name')
             ->get()
@@ -45,7 +46,7 @@ class HabitController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Habit::create($this->validateHabit($request));
+        $request->user()->habits()->create($this->validateHabit($request));
 
         return redirect()->route('habits.index')
             ->with('success', 'Habitude créée.');
@@ -53,6 +54,8 @@ class HabitController extends Controller
 
     public function edit(Habit $habit): Response
     {
+        $this->authorizeOwner($habit);
+
         return Inertia::render('Habits/Edit', [
             'habit' => $habit,
         ]);
@@ -60,6 +63,8 @@ class HabitController extends Controller
 
     public function update(Request $request, Habit $habit): RedirectResponse
     {
+        $this->authorizeOwner($habit);
+
         $habit->update($this->validateHabit($request));
 
         return redirect()->route('habits.index')
@@ -68,10 +73,17 @@ class HabitController extends Controller
 
     public function destroy(Habit $habit): RedirectResponse
     {
+        $this->authorizeOwner($habit);
+
         $habit->delete();
 
         return redirect()->route('habits.index')
             ->with('success', 'Habitude supprimée.');
+    }
+
+    private function authorizeOwner(Habit $habit): void
+    {
+        abort_if($habit->user_id !== Auth::id(), 403);
     }
 
     /**

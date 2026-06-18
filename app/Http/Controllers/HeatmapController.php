@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Habit;
 use App\Models\HabitLog;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,20 +16,22 @@ class HeatmapController extends Controller
      */
     private const WEEKS = 53;
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $today = Carbon::today();
+        $userId = $request->user()->id;
         $end = $today->copy()->endOfWeek(Carbon::SUNDAY);
         $start = $end->copy()->subWeeks(self::WEEKS - 1)->startOfWeek(Carbon::MONDAY);
 
         $counts = HabitLog::query()
             ->where('completed', true)
+            ->whereRelation('habit', 'user_id', $userId)
             ->whereBetween('date', [$start, $end])
             ->get()
             ->groupBy(fn (HabitLog $log) => $log->date->toDateString())
             ->map->count();
 
-        $habitCount = Habit::count();
+        $habitCount = Habit::where('user_id', $userId)->count();
 
         $weeks = [];
         $cursor = $start->copy();
