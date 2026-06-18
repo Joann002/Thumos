@@ -150,7 +150,7 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 - [x] Journal avec entrées datées
 - [x] Vue calendrier combinant objectifs + habitudes
 - [x] Heatmap de complétion
-- [ ] Notifications / rappels par email
+- [x] Notifications / rappels par email
 
 ## Points de vigilance
 
@@ -158,6 +158,21 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 - **Stockage de `days_of_week` en JSON** et interrogation côté backend.
 - **Construction de la heatmap SVG** depuis Vue : bon exercice de manipulation de
   données front.
+
+## Tâches planifiées
+
+Un rappel par email des habitudes non cochées est envoyé chaque jour à 19h
+(`app:send-habit-reminders`). En production, activez le scheduler Laravel :
+
+```bash
+* * * * * cd /chemin/vers/thumos && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Pour tester l'envoi manuellement (le mailer par défaut écrit dans les logs) :
+
+```bash
+php artisan app:send-habit-reminders
+```
 
 ## Tests
 
