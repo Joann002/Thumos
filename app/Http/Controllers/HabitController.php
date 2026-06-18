@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habit;
+use App\Services\StreakCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -11,16 +12,21 @@ use Inertia\Response;
 
 class HabitController extends Controller
 {
-    public function index(): Response
+    public function index(StreakCalculator $streaks): Response
     {
         $today = Carbon::today();
 
         $habits = Habit::query()
-            ->with(['logs' => fn ($q) => $q->whereDate('date', $today)])
+            ->with('logs')
             ->orderBy('name')
             ->get()
-            ->map(function (Habit $habit) {
-                $habit->setAttribute('done_today', $habit->logs->isNotEmpty());
+            ->map(function (Habit $habit) use ($today, $streaks) {
+                $habit->setAttribute(
+                    'done_today',
+                    $habit->logs->contains(fn ($log) => $log->date->isSameDay($today)),
+                );
+                $habit->setAttribute('current_streak', $streaks->current($habit));
+                $habit->setAttribute('longest_streak', $streaks->longest($habit));
                 $habit->unsetRelation('logs');
 
                 return $habit;

@@ -68,6 +68,11 @@ const remove = (habit) => {
                             {{ habit.name }}
                         </strong>
                         <span class="muted"> · {{ frequencyLabels[habit.frequency] }}</span>
+                        <br />
+                        <span class="muted" style="font-size: 0.85rem">
+                            Série : <strong>{{ habit.current_streak }}</strong> j
+                            <span v-if="habit.longest_streak"> · record {{ habit.longest_streak }} j</span>
+                        </span>
                     </span>
                 </label>
                 <div class="row">
