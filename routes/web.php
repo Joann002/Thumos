@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\GoalTaskController;
 use App\Http\Controllers\HabitController;
@@ -9,9 +10,11 @@ use App\Http\Controllers\HeatmapController;
 use App\Http\Controllers\JournalEntryController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/goals');
+Route::redirect('/', '/dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::resource('goals', GoalController::class);
 
     Route::post('goals/{goal}/tasks', [GoalTaskController::class, 'store'])->name('goals.tasks.store');
