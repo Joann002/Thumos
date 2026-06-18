@@ -14,6 +14,7 @@ const flash = computed(() => page.props.flash?.success);
                 <nav class="app-nav">
                     <Link href="/goals">Objectifs</Link>
                     <Link href="/habits">Habitudes</Link>
+                    <Link href="/journal">Journal</Link>
                 </nav>
             </div>
         </header>
