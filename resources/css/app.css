@@ -231,3 +231,61 @@ a:hover {
     color: var(--muted);
     padding: 2rem;
 }
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.calendar__weekday {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding-bottom: 0.25rem;
+}
+
+.calendar__cell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-height: 78px;
+    padding: 0.35rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.calendar__cell--out {
+    background: var(--bg);
+    color: var(--muted);
+}
+
+.calendar__cell--today {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.calendar__day {
+    font-weight: 600;
+}
+
+.calendar__done {
+    color: var(--success);
+    font-size: 0.72rem;
+}
+
+.calendar__goal {
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 5px;
+    padding: 0 0.3rem;
+    color: var(--primary);
+    font-size: 0.7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

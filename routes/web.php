@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\GoalTaskController;
 use App\Http\Controllers\HabitController;
@@ -22,3 +23,5 @@ Route::post('habits/{habit}/toggle', [HabitLogController::class, 'toggle'])->nam
 Route::resource('journal', JournalEntryController::class)
     ->parameters(['journal' => 'entry'])
     ->except('show');
+
+Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');

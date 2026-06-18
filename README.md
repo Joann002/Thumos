@@ -146,7 +146,7 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 - [x] CRUD Habits + interface « check du jour »
 - [x] Calcul et affichage des streaks
 - [x] Journal avec entrées datées
-- [ ] Vue calendrier combinant objectifs + habitudes
+- [x] Vue calendrier combinant objectifs + habitudes
 - [ ] Heatmap de complétion
 - [ ] Notifications / rappels par email
 
