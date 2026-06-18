@@ -16,6 +16,7 @@ const flash = computed(() => page.props.flash?.success);
                     <Link href="/habits">Habitudes</Link>
                     <Link href="/journal">Journal</Link>
                     <Link href="/calendar">Calendrier</Link>
+                    <Link href="/heatmap">Régularité</Link>
                 </nav>
             </div>
         </header>

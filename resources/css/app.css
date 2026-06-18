@@ -289,3 +289,21 @@ a:hover {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.heatmap {
+    overflow-x: auto;
+}
+
+.heatmap__legend {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+}
+
+.heatmap rect {
+    rx: 2;
+    ry: 2;
+}

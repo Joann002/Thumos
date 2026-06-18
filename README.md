@@ -147,7 +147,7 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 - [x] Calcul et affichage des streaks
 - [x] Journal avec entrées datées
 - [x] Vue calendrier combinant objectifs + habitudes
-- [ ] Heatmap de complétion
+- [x] Heatmap de complétion
 - [ ] Notifications / rappels par email
 
 ## Points de vigilance
