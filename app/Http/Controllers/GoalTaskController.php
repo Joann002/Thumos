@@ -6,11 +6,14 @@ use App\Models\Goal;
 use App\Models\GoalTask;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class GoalTaskController extends Controller
 {
     public function store(Request $request, Goal $goal): RedirectResponse
     {
+        $this->authorizeGoal($goal);
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
         ]);
@@ -25,6 +28,8 @@ class GoalTaskController extends Controller
 
     public function update(Request $request, GoalTask $task): RedirectResponse
     {
+        $this->authorizeGoal($task->goal);
+
         $data = $request->validate([
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'done' => ['sometimes', 'boolean'],
@@ -37,6 +42,8 @@ class GoalTaskController extends Controller
 
     public function destroy(GoalTask $task): RedirectResponse
     {
+        $this->authorizeGoal($task->goal);
+
         $task->delete();
 
         return back();
@@ -44,6 +51,8 @@ class GoalTaskController extends Controller
 
     public function reorder(Request $request, Goal $goal): RedirectResponse
     {
+        $this->authorizeGoal($goal);
+
         $data = $request->validate([
             'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:goal_tasks,id'],
@@ -54,5 +63,10 @@ class GoalTaskController extends Controller
         }
 
         return back();
+    }
+
+    private function authorizeGoal(Goal $goal): void
+    {
+        abort_if($goal->user_id !== Auth::id(), 403);
     }
 }

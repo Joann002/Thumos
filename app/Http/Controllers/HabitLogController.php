@@ -6,6 +6,7 @@ use App\Models\Habit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class HabitLogController extends Controller
 {
@@ -14,6 +15,8 @@ class HabitLogController extends Controller
      */
     public function toggle(Request $request, Habit $habit): RedirectResponse
     {
+        abort_if($habit->user_id !== Auth::id(), 403);
+
         $data = $request->validate([
             'date' => ['nullable', 'date'],
         ]);

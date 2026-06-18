@@ -29,6 +29,7 @@ heatmap SVG).
 
 | Domaine | Fonctionnalité |
 |---|---|
+| Comptes | Inscription, connexion, déconnexion (Laravel Fortify) — données isolées par utilisateur |
 | Objectifs | CRUD complet (titre, description, catégorie, date cible, statut) |
 | Objectifs | Sous-tâches / checklist réordonnable par objectif |
 | Habitudes | CRUD (nom, fréquence quotidienne ou hebdo, jours concernés) |
@@ -49,6 +50,7 @@ heatmap SVG).
 ## Stack technique
 
 - **Backend** : PHP, [Laravel](https://laravel.com)
+- **Authentification** : [Laravel Fortify](https://laravel.com/docs/fortify) (backend headless, vues Inertia maison)
 - **Pont front/back** : [Inertia.js](https://inertiajs.com)
 - **Frontend** : [Vue 3](https://vuejs.org), bundlé avec [Vite](https://vitejs.dev)
 - **Dates & logique métier** : [Carbon](https://carbon.nesbot.com) (calcul des streaks côté backend)
@@ -147,7 +149,7 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 - [x] Calcul et affichage des streaks
 - [x] Journal avec entrées datées
 - [x] Vue calendrier combinant objectifs + habitudes
-- [ ] Heatmap de complétion
+- [x] Heatmap de complétion
 - [ ] Notifications / rappels par email
 
 ## Points de vigilance

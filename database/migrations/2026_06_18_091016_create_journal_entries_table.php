@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('journal_entries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->date('date');
             $table->text('content');
             $table->string('mood')->nullable();

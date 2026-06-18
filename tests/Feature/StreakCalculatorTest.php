@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Habit;
+use App\Models\User;
 use App\Services\StreakCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -14,11 +15,14 @@ class StreakCalculatorTest extends TestCase
 
     private StreakCalculator $calculator;
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->calculator = new StreakCalculator();
+        $this->user = User::factory()->create();
         Carbon::setTestNow('2026-06-18'); // a Thursday
     }
 
@@ -31,7 +35,7 @@ class StreakCalculatorTest extends TestCase
 
     private function dailyHabitWithDates(array $dates): Habit
     {
-        $habit = Habit::create(['name' => 'Test', 'frequency' => 'daily']);
+        $habit = $this->user->habits()->create(['name' => 'Test', 'frequency' => 'daily']);
 
         foreach ($dates as $date) {
             $habit->logs()->create(['date' => $date, 'completed' => true]);
@@ -42,7 +46,7 @@ class StreakCalculatorTest extends TestCase
 
     public function test_no_logs_means_zero(): void
     {
-        $habit = Habit::create(['name' => 'Vide', 'frequency' => 'daily']);
+        $habit = $this->user->habits()->create(['name' => 'Vide', 'frequency' => 'daily']);
 
         $this->assertSame(0, $this->calculator->current($habit));
         $this->assertSame(0, $this->calculator->longest($habit));
@@ -84,7 +88,7 @@ class StreakCalculatorTest extends TestCase
     public function test_weekly_habit_counts_only_scheduled_days(): void
     {
         // Scheduled Mon/Wed/Fri. Today is Thursday 18th (not scheduled).
-        $habit = Habit::create([
+        $habit = $this->user->habits()->create([
             'name' => 'Sport',
             'frequency' => 'weekly',
             'days_of_week' => [1, 3, 5],
@@ -101,7 +105,7 @@ class StreakCalculatorTest extends TestCase
     public function test_weekly_habit_missed_scheduled_day_breaks_streak(): void
     {
         // Scheduled Mon/Wed/Fri; Wed 17 missed, today Thu not scheduled.
-        $habit = Habit::create([
+        $habit = $this->user->habits()->create([
             'name' => 'Sport',
             'frequency' => 'weekly',
             'days_of_week' => [1, 3, 5],
