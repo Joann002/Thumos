@@ -15,7 +15,11 @@ const form = useForm({
     mood: null,
 });
 
-const submit = () => form.post('/journal');
+const submit = () => {
+    form.post('/journal', {
+        onSuccess: () => form.reset(),
+    });
+};
 </script>
 
 <template>
