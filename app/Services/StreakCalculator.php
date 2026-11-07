@@ -91,6 +91,48 @@ class StreakCalculator
     }
 
     /**
+     * Total number of completed habit logs
+     */
+    public function totalCompletions(Habit $habit): int
+    {
+        return $habit->logs()->where('completed', true)->count();
+    }
+
+    /**
+     * Number of times the habit streak was broken
+     */
+    public function streakBreaks(Habit $habit): int
+    {
+        $completed = $this->completedDates($habit);
+
+        if ($completed === []) {
+            return 0;
+        }
+
+        $cursor = Carbon::parse(array_key_first($completed));
+        $today = Carbon::today();
+        $breaks = 0;
+        $inStreak = false;
+
+        while ($cursor->lessThanOrEqualTo($today)) {
+            if ($this->isScheduled($habit, $cursor)) {
+                if (isset($completed[$cursor->toDateString()])) {
+                    $inStreak = true;
+                } else {
+                    if ($inStreak) {
+                        $breaks++;
+                        $inStreak = false;
+                    }
+                }
+            }
+
+            $cursor->addDay();
+        }
+
+        return $breaks;
+    }
+
+    /**
      * Completed dates as an ordered ['Y-m-d' => true] map (ascending).
      *
      * @return array<string, true>
