@@ -30,4 +30,30 @@ class Goal extends Model
     {
         return $this->hasMany(GoalTask::class)->orderBy('order');
     }
+
+    /**
+     * Get the progress percentage of completed tasks
+     */
+    public function getProgressPercentage(): int
+    {
+        $totalTasks = $this->tasks()->count();
+        
+        if ($totalTasks === 0) {
+            return 0;
+        }
+
+        $completedTasks = $this->tasks()->where('done', true)->count();
+        
+        return (int) round(($completedTasks / $totalTasks) * 100);
+    }
+
+    /**
+     * Check if the goal is overdue
+     */
+    public function isOverdue(): bool
+    {
+        return $this->target_date && 
+               $this->target_date->isPast() && 
+               $this->status !== 'completed';
+    }
 }
