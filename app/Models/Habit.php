@@ -43,4 +43,26 @@ class Habit extends Model
 
         return true;
     }
+
+    /**
+     * Get the completion rate for the habit as a percentage
+     */
+    public function getCompletionRate(int $days = 30): float
+    {
+        $startDate = Carbon::today()->subDays($days);
+        $expectedLogs = 0;
+        $completedLogs = 0;
+
+        for ($date = $startDate; $date->lte(Carbon::today()); $date->addDay()) {
+            if ($this->isDueOn($date)) {
+                $expectedLogs++;
+                $log = $this->logs()->whereDate('date', $date)->first();
+                if ($log && $log->completed) {
+                    $completedLogs++;
+                }
+            }
+        }
+
+        return $expectedLogs > 0 ? round(($completedLogs / $expectedLogs) * 100, 2) : 0;
+    }
 }
