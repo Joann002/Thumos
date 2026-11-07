@@ -91,7 +91,7 @@ const maxWidthClass = {
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg);
     border-radius: 0.5rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
@@ -104,7 +104,7 @@ const maxWidthClass = {
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border);
 }
 
 .modal-body {
@@ -113,7 +113,7 @@ const maxWidthClass = {
 
 .modal-footer {
     padding: 1.5rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border);
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
@@ -128,13 +128,13 @@ const maxWidthClass = {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6b7280;
+    color: var(--muted);
     transition: all 0.15s;
 }
 
 .modal-close:hover {
-    background-color: #f3f4f6;
-    color: #111827;
+    background-color: var(--bg-soft);
+    color: var(--text);
 }
 
 .max-w-sm { max-width: 24rem; }
