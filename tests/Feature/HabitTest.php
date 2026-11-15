@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Habit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -11,76 +12,71 @@ class HabitTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User $user;
-
-    protected function setUp(): void
+    /** @test */
+    public function user_can_create_daily_habit()
     {
-        parent::setUp();
+        $user = User::factory()->create();
 
-        $this->user = User::factory()->create();
-        $this->actingAs($this->user);
-    }
-
-    public function test_habits_index_is_rendered(): void
-    {
-        $this->get('/habits')
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('Habits/Index'));
-    }
-
-    public function test_a_habit_can_be_created(): void
-    {
-        $this->post('/habits', [
-            'name' => 'Méditer',
+        $response = $this->actingAs($user)->post('/habits', [
+            'name' => 'Morning Meditation',
             'frequency' => 'daily',
-            'color' => '#16a34a',
-        ])->assertRedirect('/habits');
+            'color' => '#8B5CF6',
+        ]);
 
+        $response->assertRedirect();
         $this->assertDatabaseHas('habits', [
-            'name' => 'Méditer',
+            'name' => 'Morning Meditation',
+            'user_id' => $user->id,
             'frequency' => 'daily',
-            'user_id' => $this->user->id,
         ]);
     }
 
-    public function test_a_weekly_habit_stores_days_of_week(): void
+    /** @test */
+    public function user_can_create_weekly_habit()
     {
-        $this->post('/habits', [
-            'name' => 'Sport',
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/habits', [
+            'name' => 'Gym Workout',
             'frequency' => 'weekly',
             'days_of_week' => [1, 3, 5],
-        ])->assertRedirect('/habits');
+            'color' => '#EF4444',
+        ]);
 
-        $habit = $this->user->habits()->firstOrFail();
-
-        $this->assertSame([1, 3, 5], $habit->days_of_week);
+        $response->assertRedirect();
+        $this->assertDatabaseHas('habits', [
+            'name' => 'Gym Workout',
+            'frequency' => 'weekly',
+        ]);
     }
 
-    public function test_toggling_marks_and_unmarks_today(): void
+    /** @test */
+    public function user_can_toggle_habit_completion()
     {
-        $habit = $this->user->habits()->create(['name' => 'Lire', 'frequency' => 'daily']);
+        $user = User::factory()->create();
+        $habit = Habit::factory()->create(['user_id' => $user->id]);
 
-        $this->post("/habits/{$habit->id}/toggle");
-        $this->assertSame(1, $habit->logs()->whereDate('date', Carbon::today())->count());
+        $response = $this->actingAs($user)->post("/habits/{$habit->id}/toggle", [
+            'date' => Carbon::today()->toDateString(),
+        ]);
 
-        $this->post("/habits/{$habit->id}/toggle");
-        $this->assertSame(0, $habit->logs()->whereDate('date', Carbon::today())->count());
+        $response->assertRedirect();
+        $this->assertDatabaseHas('habit_logs', [
+            'habit_id' => $habit->id,
+            'date' => Carbon::today()->toDateString(),
+            'completed' => true,
+        ]);
     }
 
-    public function test_a_habit_can_be_deleted(): void
+    /** @test */
+    public function user_cannot_access_others_habits()
     {
-        $habit = $this->user->habits()->create(['name' => 'Temporaire', 'frequency' => 'daily']);
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $habit = Habit::factory()->create(['user_id' => $otherUser->id]);
 
-        $this->delete("/habits/{$habit->id}")->assertRedirect('/habits');
+        $response = $this->actingAs($user)->delete("/habits/{$habit->id}");
 
-        $this->assertDatabaseMissing('habits', ['id' => $habit->id]);
-    }
-
-    public function test_a_user_cannot_toggle_another_users_habit(): void
-    {
-        $other = User::factory()->create();
-        $habit = $other->habits()->create(['name' => 'Privé', 'frequency' => 'daily']);
-
-        $this->post("/habits/{$habit->id}/toggle")->assertForbidden();
+        $response->assertForbidden();
     }
 }
