@@ -57,4 +57,14 @@ class DashboardTest extends TestCase
                 return $page;
             });
     }
+
+    public function test_dashboard_does_not_count_incomplete_or_past_logs_as_done_today(): void
+    {
+        $user = User::factory()->create();
+        $habit = $user->habits()->create(['name' => 'Lire', 'frequency' => 'daily']);
+        $habit->logs()->create(['date' => '2026-06-17', 'completed' => true]);
+        $habit->logs()->create(['date' => '2026-06-18', 'completed' => false]);
+        $this->actingAs($user)->get('/dashboard')->assertInertia(fn ($page) => $page
+            ->where('stats.done_today', 0)->where('todayHabits.0.done_today', false)->where('stats.best_streak', 1));
+    }
 }
