@@ -63,4 +63,11 @@ class HeatmapTest extends TestCase
                 return $page;
             });
     }
+
+    public function test_heatmap_excludes_future_completions(): void
+    {
+        $habit = $this->user->habits()->create(['name' => 'Lire', 'frequency' => 'daily']);
+        $habit->logs()->create(['date' => '2026-06-19', 'completed' => true]);
+        $this->get('/heatmap')->assertInertia(fn ($page) => $page->where('totalCompletions', 0));
+    }
 }
