@@ -10,10 +10,10 @@ defineProps({
 </script>
 
 <template>
-    <div class="stack">
+    <fieldset class="stack" :disabled="form.processing" style="border: 0; padding: 0; margin: 0; min-width: 0">
         <div class="field">
             <label for="date">Date</label>
-            <input id="date" v-model="form.date" type="date" class="input" />
+            <input id="date" v-model="form.date" type="date" required class="input" />
             <span v-if="form.errors.date" class="error">{{ form.errors.date }}</span>
         </div>
 
@@ -25,6 +25,7 @@ defineProps({
                     :key="mood.value"
                     type="button"
                     class="badge"
+                    :aria-pressed="form.mood === mood.value"
                     :style="{
                         cursor: 'pointer',
                         borderColor: form.mood === mood.value ? '#1f2430' : '#e2e5ea',
@@ -41,13 +42,14 @@ defineProps({
         <div class="field">
             <label for="content">Contenu</label>
             <textarea
-                id="content"
+                id="content" maxlength="5000" :aria-invalid="Boolean(form.errors.content)" :aria-describedby="form.errors.content ? 'content-error' : undefined"
                 v-model="form.content"
+                required
                 class="textarea"
                 style="min-height: 160px"
                 placeholder="Qu'as-tu en tête aujourd'hui ?"
             ></textarea>
-            <span v-if="form.errors.content" class="error">{{ form.errors.content }}</span>
+            <span v-if="form.errors.content" id="content-error" class="error" role="alert">{{ form.errors.content }}</span>
         </div>
-    </div>
+    </fieldset>
 </template>
