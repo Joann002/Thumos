@@ -18,7 +18,7 @@ class GoalFactory extends Factory
             'description' => fake()->paragraph(),
             'category' => fake()->randomElement(['Personnel', 'Développement', 'Santé', 'Carrière']),
             'target_date' => fake()->dateTimeBetween('now', '+6 months'),
-            'status' => fake()->randomElement(['planned', 'in_progress', 'completed', 'archived']),
+            'status' => 'active',
         ];
     }
 
@@ -28,7 +28,7 @@ class GoalFactory extends Factory
     public function inProgress(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'in_progress',
+            'status' => 'active',
         ]);
     }
 
@@ -38,7 +38,7 @@ class GoalFactory extends Factory
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
+            'status' => 'done',
         ]);
     }
 }
