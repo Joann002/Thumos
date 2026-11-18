@@ -2,40 +2,15 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\JournalEntry;
 
-class UpdateJournalEntryRequest extends FormRequest
+class UpdateJournalEntryRequest extends StoreJournalEntryRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return $this->entry->user_id === $this->user()->id;
-    }
+        $model = $this->route('entry');
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
-    public function rules(): array
-    {
-        return [
-            'date' => ['required', 'date'],
-            'content' => ['required', 'string', 'max:5000'],
-            'mood' => ['nullable', 'in:excellent,good,neutral,bad,terrible'],
-        ];
-    }
-
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages(): array
-    {
-        return [
-            'date.required' => 'La date est obligatoire.',
-            'content.required' => 'Le contenu de l\'entrée est obligatoire.',
-            'content.max' => 'Le contenu ne peut pas dépasser 5000 caractères.',
-            'mood.in' => 'L\'humeur sélectionnée n\'est pas valide.',
-        ];
+        return $this->user() !== null && $model instanceof JournalEntry
+            && $model->user_id === $this->user()->id;
     }
 }
