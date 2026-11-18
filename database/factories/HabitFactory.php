@@ -15,7 +15,7 @@ class HabitFactory extends Factory
         return [
             'user_id' => User::factory(),
             'name' => fake()->sentence(2),
-            'frequency' => fake()->randomElement(['daily', 'weekly']),
+            'frequency' => 'daily',
             'days_of_week' => null,
             'color' => fake()->hexColor(),
         ];
