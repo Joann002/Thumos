@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreGoalRequest;
+use App\Http\Requests\UpdateGoalRequest;
 use App\Models\Goal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,9 +33,9 @@ class GoalController extends Controller
         return Inertia::render('Goals/Create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreGoalRequest $request): RedirectResponse
     {
-        $goal = $request->user()->goals()->create($this->validateGoal($request));
+        $goal = $request->user()->goals()->create($request->validated());
 
         return redirect()->route('goals.show', $goal)
             ->with('success', 'Objectif créé.');
@@ -59,11 +61,11 @@ class GoalController extends Controller
         ]);
     }
 
-    public function update(Request $request, Goal $goal): RedirectResponse
+    public function update(UpdateGoalRequest $request, Goal $goal): RedirectResponse
     {
         $this->authorizeOwner($goal);
 
-        $goal->update($this->validateGoal($request));
+        $goal->update($request->validated());
 
         return redirect()->route('goals.show', $goal)
             ->with('success', 'Objectif mis à jour.');
@@ -82,19 +84,5 @@ class GoalController extends Controller
     private function authorizeOwner(Goal $goal): void
     {
         abort_if($goal->user_id !== Auth::id(), 403);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function validateGoal(Request $request): array
-    {
-        return $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'category' => ['nullable', 'string', 'max:255'],
-            'target_date' => ['nullable', 'date'],
-            'status' => ['required', 'in:active,done,paused'],
-        ]);
     }
 }
