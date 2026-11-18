@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Goal;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreGoalRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class StoreGoalRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     /**
@@ -23,8 +25,8 @@ class StoreGoalRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'category' => ['nullable', 'string', 'max:100'],
-            'target_date' => ['nullable', 'date', 'after_or_equal:today'],
-            'status' => ['nullable', 'in:active,completed,archived'],
+            'target_date' => ['nullable', 'date_format:Y-m-d'],
+            'status' => ['required', Rule::in(Goal::STATUSES)],
         ];
     }
 
