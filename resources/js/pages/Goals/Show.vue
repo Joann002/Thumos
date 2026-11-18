@@ -1,6 +1,7 @@
 <script setup>
 import { Link, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useDateFormatter } from '../../Composables/useDateFormatter';
 import draggable from 'vuedraggable';
 import Icon from '../../Components/Icon.vue';
 
@@ -18,6 +19,9 @@ const statusLabels = {
 };
 
 const tasks = ref([...props.goal.tasks]);
+const { formatDateShort } = useDateFormatter();
+const pending = ref([]);
+watch(() => props.goal.tasks, (value) => { tasks.value = [...value]; });
 
 const progress = computed(() => {
     if (!tasks.value.length) return 0;
@@ -35,11 +39,12 @@ const addTask = () => {
 };
 
 const toggleTask = (task) => {
-    router.patch(
-        `/tasks/${task.id}`,
-        { done: !task.done },
-        { preserveScroll: true, onSuccess: () => (task.done = !task.done) },
-    );
+    if (pending.value.includes(task.id)) return;
+    pending.value.push(task.id);
+    router.patch(`/tasks/${task.id}`, { done: !task.done }, {
+        preserveScroll: true,
+        onFinish: () => { pending.value = pending.value.filter((id) => id !== task.id); },
+    });
 };
 
 const deleteTask = (task) => {
@@ -86,7 +91,7 @@ const deleteGoal = () => {
                 </span>
                 <span v-if="goal.category" class="badge">{{ goal.category }}</span>
                 <span v-if="goal.target_date" class="muted" style="font-size: 0.85rem">
-                    Échéance : {{ new Date(goal.target_date).toLocaleDateString('fr-FR') }}
+                    Échéance : {{ formatDateShort(goal.target_date) }}
                 </span>
             </div>
             <p v-if="goal.description" style="margin: 0; white-space: pre-wrap; color: var(--text-soft)">{{ goal.description }}</p>
@@ -110,7 +115,7 @@ const deleteGoal = () => {
                 <template #item="{ element: task }">
                     <li class="checklist__item" :class="{ 'checklist__item--done': task.done }">
                         <span class="drag-handle muted" style="cursor: grab; display: inline-flex"><Icon name="grip" :size="16" /></span>
-                        <input type="checkbox" :checked="task.done" @change="toggleTask(task)" />
+                        <input type="checkbox" :checked="task.done" :disabled="pending.includes(task.id)" :aria-label="task.title" @change="toggleTask(task)" />
                         <span class="checklist__title" style="flex: 1">{{ task.title }}</span>
                         <button class="icon-btn" style="width: 30px; height: 30px" title="Supprimer" @click="deleteTask(task)"><Icon name="trash" :size="15" /></button>
                     </li>
@@ -121,6 +126,11 @@ const deleteGoal = () => {
 
             <form class="row" @submit.prevent="addTask">
                 <input
+                    id="new-task-title"
+                    aria-label="Titre de la nouvelle sous-tâche"
+                    maxlength="255"
+                    required
+                    :disabled="newTask.processing"
                     v-model="newTask.title"
                     type="text"
                     class="input"
@@ -128,7 +138,7 @@ const deleteGoal = () => {
                 />
                 <button type="submit" class="btn" :disabled="newTask.processing"><Icon name="plus" :size="16" /> Ajouter</button>
             </form>
-            <span v-if="newTask.errors.title" class="error">{{ newTask.errors.title }}</span>
+            <span v-if="newTask.errors.title" class="error" role="alert">{{ newTask.errors.title }}</span>
         </div>
     </div>
 </template>
