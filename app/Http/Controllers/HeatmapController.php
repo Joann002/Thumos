@@ -25,6 +25,7 @@ class HeatmapController extends Controller
 
         $counts = HabitLog::query()
             ->where('completed', true)
+            ->whereDate('date', '<=', $today)
             ->whereRelation('habit', 'user_id', $userId)
             ->whereBetween('date', [$start, $end])
             ->get()
