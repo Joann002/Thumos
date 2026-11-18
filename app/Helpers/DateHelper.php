@@ -17,7 +17,7 @@ class DateHelper
             9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre',
         ];
 
-        return $date->day . ' ' . $months[$date->month] . ' ' . $date->year;
+        return $date->day.' '.$months[$date->month].' '.$date->year;
     }
 
     /**
@@ -26,7 +26,7 @@ class DateHelper
     public static function relativeTimeFrench(Carbon $date): string
     {
         $now = Carbon::now();
-        $diff = $now->diffInDays($date);
+        $diff = (int) abs($now->copy()->startOfDay()->diffInDays($date->copy()->startOfDay(), false));
 
         if ($date->isToday()) {
             return "aujourd'hui";
@@ -41,11 +41,11 @@ class DateHelper
         }
 
         if ($diff < 7 && $date->isPast()) {
-            return "il y a {$diff} jour" . ($diff > 1 ? 's' : '');
+            return "il y a {$diff} jour".($diff > 1 ? 's' : '');
         }
 
         if ($diff < 7 && $date->isFuture()) {
-            return "dans {$diff} jour" . ($diff > 1 ? 's' : '');
+            return "dans {$diff} jour".($diff > 1 ? 's' : '');
         }
 
         return self::formatFrench($date);
@@ -56,7 +56,7 @@ class DateHelper
      */
     public static function daysUntil(Carbon $date): int
     {
-        return Carbon::today()->diffInDays($date, false);
+        return (int) Carbon::today()->diffInDays($date->copy()->startOfDay(), false);
     }
 
     /**
@@ -65,6 +65,7 @@ class DateHelper
     public static function isWithinDays(Carbon $date, int $days): bool
     {
         $future = Carbon::today()->addDays($days);
+
         return $date->between(Carbon::today(), $future);
     }
 

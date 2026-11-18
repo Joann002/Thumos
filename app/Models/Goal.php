@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Goal extends Model
 {
+    use HasFactory;
+
+    public const STATUSES = ['active', 'paused', 'done'];
+
     protected $fillable = [
         'user_id',
         'title',
@@ -18,7 +23,7 @@ class Goal extends Model
     ];
 
     protected $casts = [
-        'target_date' => 'date',
+        'target_date' => 'date:Y-m-d',
     ];
 
     public function user(): BelongsTo
@@ -36,15 +41,10 @@ class Goal extends Model
      */
     public function getProgressPercentage(): int
     {
-        $totalTasks = $this->tasks()->count();
-        
-        if ($totalTasks === 0) {
-            return 0;
-        }
+        $tasks = $this->relationLoaded('tasks') ? $this->tasks : $this->tasks()->get(['done']);
+        $totalTasks = $tasks->count();
 
-        $completedTasks = $this->tasks()->where('done', true)->count();
-        
-        return (int) round(($completedTasks / $totalTasks) * 100);
+        return $totalTasks > 0 ? (int) round($tasks->where('done', true)->count() / $totalTasks * 100) : 0;
     }
 
     /**
@@ -52,8 +52,8 @@ class Goal extends Model
      */
     public function isOverdue(): bool
     {
-        return $this->target_date && 
-               $this->target_date->isPast() && 
-               $this->status !== 'completed';
+        return $this->target_date !== null
+            && $this->target_date->lt(today())
+            && $this->status === 'active';
     }
 }

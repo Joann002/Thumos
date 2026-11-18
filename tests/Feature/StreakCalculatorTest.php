@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\StreakCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class StreakCalculatorTest extends TestCase
@@ -21,7 +22,7 @@ class StreakCalculatorTest extends TestCase
     {
         parent::setUp();
 
-        $this->calculator = new StreakCalculator();
+        $this->calculator = new StreakCalculator;
         $this->user = User::factory()->create();
         Carbon::setTestNow('2026-06-18'); // a Thursday
     }
@@ -117,5 +118,19 @@ class StreakCalculatorTest extends TestCase
 
         // Most recent scheduled day (Wed 17) was missed -> streak broken.
         $this->assertSame(0, $this->calculator->current($habit->fresh('logs')));
+    }
+
+    public function test_loaded_logs_are_reused_and_future_or_false_logs_do_not_count(): void
+    {
+        $habit = $this->dailyHabitWithDates(['2026-06-17', '2026-06-19']);
+        $habit->logs()->create(['date' => '2026-06-18', 'completed' => false]);
+        $habit->load('logs');
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        $this->assertSame(1, $this->calculator->current($habit));
+        $this->assertSame(1, $this->calculator->longest($habit));
+        $this->assertSame(1, $this->calculator->totalCompletions($habit));
+        $this->assertCount(0, DB::getQueryLog());
+        DB::disableQueryLog();
     }
 }

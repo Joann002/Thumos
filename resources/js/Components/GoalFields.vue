@@ -8,23 +8,23 @@ defineProps({
 </script>
 
 <template>
-    <div class="stack">
+    <fieldset class="stack" :disabled="form.processing" style="border: 0; padding: 0; margin: 0; min-width: 0">
         <div class="field">
             <label for="title">Titre</label>
-            <input id="title" v-model="form.title" type="text" class="input" />
-            <span v-if="form.errors.title" class="error">{{ form.errors.title }}</span>
+            <input id="title" maxlength="255" :aria-invalid="Boolean(form.errors.title)" :aria-describedby="form.errors.title ? 'title-error' : undefined" v-model="form.title" type="text" required class="input" />
+            <span v-if="form.errors.title" id="title-error" class="error" role="alert">{{ form.errors.title }}</span>
         </div>
 
         <div class="field">
             <label for="description">Description</label>
-            <textarea id="description" v-model="form.description" class="textarea"></textarea>
-            <span v-if="form.errors.description" class="error">{{ form.errors.description }}</span>
+            <textarea id="description" maxlength="2000" :aria-invalid="Boolean(form.errors.description)" :aria-describedby="form.errors.description ? 'description-error' : undefined" v-model="form.description" class="textarea"></textarea>
+            <span v-if="form.errors.description" id="description-error" class="error" role="alert">{{ form.errors.description }}</span>
         </div>
 
         <div class="field">
             <label for="category">Catégorie</label>
-            <input id="category" v-model="form.category" type="text" class="input" placeholder="Santé, Carrière…" />
-            <span v-if="form.errors.category" class="error">{{ form.errors.category }}</span>
+            <input id="category" maxlength="100" :aria-invalid="Boolean(form.errors.category)" :aria-describedby="form.errors.category ? 'category-error' : undefined" v-model="form.category" type="text" class="input" placeholder="Santé, Carrière…" />
+            <span v-if="form.errors.category" id="category-error" class="error" role="alert">{{ form.errors.category }}</span>
         </div>
 
         <div class="field">
@@ -42,5 +42,5 @@ defineProps({
             </select>
             <span v-if="form.errors.status" class="error">{{ form.errors.status }}</span>
         </div>
-    </div>
+    </fieldset>
 </template>

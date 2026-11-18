@@ -3,6 +3,7 @@
         <div 
             class="progress__bar" 
             :style="{ width: `${percentage}%` }"
+            :aria-label="label"
             :aria-valuenow="percentage"
             aria-valuemin="0"
             aria-valuemax="100"
@@ -17,6 +18,7 @@
 import { computed } from 'vue';
 
 const props = defineProps({
+    label: { type: String, default: 'Progression' },
     value: {
         type: Number,
         required: true,
@@ -32,8 +34,8 @@ const props = defineProps({
 });
 
 const percentage = computed(() => {
-    if (props.max === 0) return 0;
-    return Math.min(Math.round((props.value / props.max) * 100), 100);
+    if (!Number.isFinite(props.value) || !Number.isFinite(props.max) || props.max <= 0) return 0;
+    return Math.max(0, Math.min(Math.round((props.value / props.max) * 100), 100));
 });
 </script>
 

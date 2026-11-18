@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\JournalEntry;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreJournalEntryRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class StoreJournalEntryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     /**
@@ -20,9 +22,9 @@ class StoreJournalEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => ['required', 'date'],
+            'date' => ['required', 'date_format:Y-m-d'],
             'content' => ['required', 'string', 'max:5000'],
-            'mood' => ['nullable', 'in:excellent,good,neutral,bad,terrible'],
+            'mood' => ['nullable', Rule::in(JournalEntry::MOODS)],
         ];
     }
 

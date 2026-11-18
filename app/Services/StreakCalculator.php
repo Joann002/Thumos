@@ -43,6 +43,7 @@ class StreakCalculator
                     // Today is scheduled but not yet checked: don't break the streak.
                     $index++;
                     $cursor->subDay();
+
                     continue;
                 } else {
                     break;
@@ -95,7 +96,7 @@ class StreakCalculator
      */
     public function totalCompletions(Habit $habit): int
     {
-        return $habit->logs()->where('completed', true)->count();
+        return count($this->completedDates($habit));
     }
 
     /**
@@ -139,12 +140,10 @@ class StreakCalculator
      */
     private function completedDates(Habit $habit): array
     {
-        $dates = $habit->logs()
-            ->where('completed', true)
-            ->orderBy('date')
-            ->pluck('date')
-            ->map(fn ($date) => Carbon::parse($date)->toDateString())
-            ->all();
+        $logs = $habit->relationLoaded('logs') ? $habit->logs : $habit->logs()
+            ->where('completed', true)->whereDate('date', '<=', Carbon::today())->get();
+        $dates = $logs->filter(fn ($log) => $log->completed && $log->date->lte(Carbon::today()))
+            ->map(fn ($log) => $log->date->toDateString())->unique()->sort()->values()->all();
 
         return array_fill_keys($dates, true);
     }

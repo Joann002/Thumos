@@ -16,16 +16,17 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = Carbon::today();
 
-        $habits = $user->habits()->with(['logs' => fn ($q) => $q->whereDate('date', $today)])->get();
+        $habits = $user->habits()->with(['logs' => fn ($q) => $q
+            ->where('completed', true)->whereDate('date', '<=', $today)])->get();
 
         $dueToday = $habits->filter(fn (Habit $h) => $h->isDueOn($today));
-        $doneToday = $dueToday->filter(fn (Habit $h) => $h->logs->isNotEmpty());
+        $doneToday = $dueToday->filter(fn (Habit $h) => $h->logs->contains(fn ($log) => $log->date->isSameDay($today)));
 
         $todayHabits = $dueToday->map(fn (Habit $h) => [
             'id' => $h->id,
             'name' => $h->name,
             'color' => $h->color,
-            'done_today' => $h->logs->isNotEmpty(),
+            'done_today' => $h->logs->contains(fn ($log) => $log->date->isSameDay($today)),
         ])->values();
 
         $bestStreak = $habits->isEmpty()

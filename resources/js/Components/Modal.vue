@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, useId, watch } from 'vue';
 import Icon from './Icon.vue';
 
 const props = defineProps({
@@ -18,6 +18,29 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const dialog = ref(null);
+const titleId = useId();
+let previousFocus = null;
+let previousOverflow = null;
+
+const restorePage = () => {
+    if (typeof document === 'undefined' || previousOverflow === null) return;
+    document.body.style.overflow = previousOverflow;
+    previousOverflow = null;
+    previousFocus?.focus();
+};
+
+watch(() => props.show, async (show) => {
+    if (show) {
+        previousFocus = document.activeElement;
+        previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        await nextTick();
+        dialog.value?.focus();
+    } else {
+        restorePage();
+    }
+}, { flush: 'post' });
 
 const close = () => {
     if (props.closeable) {
@@ -29,10 +52,28 @@ const closeOnEscape = (e) => {
     if (e.key === 'Escape' && props.show) {
         close();
     }
+    if (e.key !== 'Tab' || !props.show || !dialog.value) return;
+    const controls = [...dialog.value.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+        .filter((element) => element.getClientRects().length > 0);
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (!first) {
+        e.preventDefault();
+        dialog.value.focus();
+    } else if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog.value)) {
+        e.preventDefault();
+        last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+    }
 };
 
 onMounted(() => document.addEventListener('keydown', closeOnEscape));
-onUnmounted(() => document.removeEventListener('keydown', closeOnEscape));
+onUnmounted(() => {
+    document.removeEventListener('keydown', closeOnEscape);
+    restorePage();
+});
 
 const maxWidthClass = {
     'sm': 'max-w-sm',
@@ -49,15 +90,22 @@ const maxWidthClass = {
         <Transition name="modal">
             <div v-show="show" class="modal-overlay" @click="close">
                 <div
+                    ref="dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-labelledby="$slots.header ? titleId : undefined"
+                    :aria-label="$slots.header ? undefined : 'Dialogue'"
+                    tabindex="-1"
                     :class="['modal-content', maxWidthClass]"
                     @click.stop
                 >
                     <div class="modal-header">
-                        <slot name="header" />
+                        <div :id="titleId"><slot name="header" /></div>
                         <button
                             v-if="closeable"
                             type="button"
                             class="modal-close"
+                            aria-label="Fermer la fenêtre"
                             @click="close"
                         >
                             <Icon name="close" :size="20" />
@@ -162,5 +210,12 @@ const maxWidthClass = {
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
     transform: scale(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal-enter-active, .modal-leave-active,
+    .modal-enter-active .modal-content, .modal-leave-active .modal-content {
+        transition: none;
+    }
 }
 </style>

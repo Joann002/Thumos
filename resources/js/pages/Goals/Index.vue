@@ -1,6 +1,7 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import Icon from '../../Components/Icon.vue';
+import ProgressBar from '../../Components/ProgressBar.vue';
 
 defineProps({
     goals: {
@@ -15,7 +16,7 @@ const statusLabels = {
     done: 'Terminé',
 };
 
-const progress = (goal) => (goal.tasks_count ? Math.round((goal.completed_tasks_count / goal.tasks_count) * 100) : 0);
+
 </script>
 
 <template>
@@ -41,9 +42,7 @@ const progress = (goal) => (goal.tasks_count ? Math.round((goal.completed_tasks_
                         <span v-if="goal.category">{{ goal.category }} · </span>
                         <span class="tabular">{{ goal.completed_tasks_count }}/{{ goal.tasks_count }}</span> sous-tâches
                     </div>
-                    <div v-if="goal.tasks_count" class="progress" style="margin-top: 0.6rem; max-width: 260px">
-                        <div class="progress__bar" :style="{ width: progress(goal) + '%' }"></div>
-                    </div>
+                    <ProgressBar v-if="goal.tasks_count" :value="goal.completed_tasks_count" :max="goal.tasks_count" :label="`Avancement de ${goal.title}`" style="margin-top: 0.6rem; max-width: 260px" />
                 </div>
                 <span class="badge" :class="{ 'badge--done': goal.status === 'done', 'badge--accent': goal.status === 'active' }">
                     {{ statusLabels[goal.status] ?? goal.status }}

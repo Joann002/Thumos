@@ -1,6 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import Icon from '../../Components/Icon.vue';
 import Modal from '../../Components/Modal.vue';
 
@@ -33,38 +33,48 @@ const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const showModal = ref(false);
 const modalLoading = ref(false);
 const dayDetails = ref(null);
+const modalError = ref('');
+let dayRequest = null;
+onBeforeUnmount(() => dayRequest?.abort());
 
 const moodEmojis = {
-    excellent: '😄',
+    great: '😄',
     good: '🙂',
     neutral: '😐',
     bad: '😞',
-    terrible: '😢',
+    awful: '😢',
 };
 
 const statusLabels = {
-    planned: 'Planifié',
-    in_progress: 'En cours',
-    completed: 'Terminé',
-    cancelled: 'Annulé',
+    active: 'En cours',
+    paused: 'En pause',
+    done: 'Terminé',
 };
 
 const openDayModal = async (date) => {
+    dayRequest?.abort();
+    const request = new AbortController();
+    dayRequest = request;
     showModal.value = true;
     modalLoading.value = true;
     dayDetails.value = null;
+    modalError.value = '';
 
     try {
-        const response = await fetch(`/calendar/${date}`);
-        dayDetails.value = await response.json();
+        const response = await fetch(`/calendar/${date}`, { signal: request.signal, headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('Le détail de cette journée est indisponible. Réessaie dans un instant.');
+        const details = await response.json();
+        if (dayRequest === request) dayDetails.value = details;
     } catch (error) {
-        console.error('Error loading day details:', error);
+        if (error.name !== 'AbortError' && dayRequest === request) modalError.value = error.message;
     } finally {
-        modalLoading.value = false;
+        if (dayRequest === request) modalLoading.value = false;
     }
 };
 
 const closeModal = () => {
+    dayRequest?.abort();
+    dayRequest = null;
     showModal.value = false;
     dayDetails.value = null;
 };
@@ -93,6 +103,12 @@ const closeModal = () => {
                 :key="cell.date"
                 class="calendar__cell"
                 :class="{ 'calendar__cell--out': !cell.in_month, 'calendar__cell--today': cell.is_today, 'calendar__cell--clickable': cell.in_month }"
+                role="button"
+                :tabindex="cell.in_month ? 0 : -1"
+                :aria-label="cell.date"
+                :aria-disabled="!cell.in_month"
+                @keydown.enter.prevent="cell.in_month && openDayModal(cell.date)"
+                @keydown.space.prevent="cell.in_month && openDayModal(cell.date)"
                 @click="cell.in_month && openDayModal(cell.date)"
             >
                 <span class="calendar__day">{{ cell.day }}</span>
@@ -116,6 +132,7 @@ const closeModal = () => {
                 <h2 style="margin: 0; font-size: 1.25rem">{{ dayDetails?.date }}</h2>
             </template>
 
+            <p v-if="modalError" role="alert" class="error">{{ modalError }}</p>
             <div v-if="modalLoading" class="loading-state">
                 <p>Chargement...</p>
             </div>
@@ -157,8 +174,8 @@ const closeModal = () => {
                             <div class="goal-header">
                                 <Link :href="`/goals/${goal.id}`" class="goal-title">{{ goal.title }}</Link>
                                 <span class="badge" :class="{
-                                    'badge--done': goal.status === 'completed',
-                                    'badge--accent': goal.status === 'in_progress'
+                                    'badge--done': goal.status === 'done',
+                                    'badge--accent': goal.status === 'active'
                                 }">
                                     {{ statusLabels[goal.status] }}
                                 </span>

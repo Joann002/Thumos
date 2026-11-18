@@ -21,7 +21,7 @@ class GoalProgressTracker
             'completed_tasks' => $completedTasks,
             'remaining_tasks' => $totalTasks - $completedTasks,
             'percentage' => $goal->getProgressPercentage(),
-            'is_completed' => $goal->status === 'completed',
+            'is_completed' => $goal->status === 'done',
             'is_overdue' => $goal->isOverdue(),
         ];
     }
@@ -32,10 +32,9 @@ class GoalProgressTracker
     public function groupByStatus(Collection $goals): array
     {
         return [
-            'planned' => $goals->where('status', 'planned')->values(),
-            'in_progress' => $goals->where('status', 'in_progress')->values(),
-            'completed' => $goals->where('status', 'completed')->values(),
-            'archived' => $goals->where('status', 'archived')->values(),
+            'active' => $goals->where('status', 'active')->values(),
+            'paused' => $goals->where('status', 'paused')->values(),
+            'done' => $goals->where('status', 'done')->values(),
         ];
     }
 
@@ -54,13 +53,13 @@ class GoalProgressTracker
      */
     public function getDueSoon(Collection $goals): Collection
     {
-        $oneWeekFromNow = now()->addWeek();
+        $oneWeekFromNow = today()->addWeek();
 
         return $goals->filter(function ($goal) use ($oneWeekFromNow) {
-            return $goal->target_date 
-                && $goal->target_date->isFuture() 
+            return $goal->target_date
+                && $goal->target_date->gte(today())
                 && $goal->target_date->lessThanOrEqualTo($oneWeekFromNow)
-                && $goal->status !== 'completed';
+                && $goal->status === 'active';
         });
     }
 }

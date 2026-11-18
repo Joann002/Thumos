@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\JournalEntry;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -16,7 +17,7 @@ class JournalEntryFactory extends Factory
             'user_id' => User::factory(),
             'date' => fake()->dateTimeBetween('-30 days', 'now'),
             'content' => fake()->paragraphs(3, true),
-            'mood' => fake()->randomElement(['excellent', 'good', 'neutral', 'bad', 'terrible']),
+            'mood' => fake()->randomElement(JournalEntry::MOODS),
         ];
     }
 
@@ -26,7 +27,7 @@ class JournalEntryFactory extends Factory
     public function positive(): static
     {
         return $this->state(fn (array $attributes) => [
-            'mood' => fake()->randomElement(['excellent', 'good']),
+            'mood' => fake()->randomElement(['great', 'good']),
         ]);
     }
 
@@ -36,7 +37,7 @@ class JournalEntryFactory extends Factory
     public function negative(): static
     {
         return $this->state(fn (array $attributes) => [
-            'mood' => fake()->randomElement(['bad', 'terrible']),
+            'mood' => fake()->randomElement(['bad', 'awful']),
         ]);
     }
 }

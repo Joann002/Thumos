@@ -20,11 +20,11 @@ const colors = ['#4f46e5', '#16a34a', '#dc2626', '#d97706', '#0891b2', '#7c3aed'
 </script>
 
 <template>
-    <div class="stack">
+    <fieldset class="stack" :disabled="form.processing" style="border: 0; padding: 0; margin: 0; min-width: 0">
         <div class="field">
             <label for="name">Nom</label>
-            <input id="name" v-model="form.name" type="text" class="input" placeholder="Méditer, Lire…" />
-            <span v-if="form.errors.name" class="error">{{ form.errors.name }}</span>
+            <input id="name" maxlength="255" :aria-invalid="Boolean(form.errors.name)" :aria-describedby="form.errors.name ? 'name-error' : undefined" v-model="form.name" type="text" required class="input" placeholder="Méditer, Lire…" />
+            <span v-if="form.errors.name" id="name-error" class="error" role="alert">{{ form.errors.name }}</span>
         </div>
 
         <div class="field">
@@ -37,8 +37,8 @@ const colors = ['#4f46e5', '#16a34a', '#dc2626', '#d97706', '#0891b2', '#7c3aed'
         </div>
 
         <div v-if="form.frequency === 'weekly'" class="field">
-            <label>Jours concernés</label>
-            <div class="row" style="flex-wrap: wrap; gap: 0.5rem">
+            <label id="weekdays-label">Jours concernés</label>
+            <div class="row" role="group" aria-labelledby="weekdays-label" style="flex-wrap: wrap; gap: 0.5rem">
                 <label
                     v-for="day in weekdays"
                     :key="day.value"
@@ -49,7 +49,7 @@ const colors = ['#4f46e5', '#16a34a', '#dc2626', '#d97706', '#0891b2', '#7c3aed'
                     {{ day.label }}
                 </label>
             </div>
-            <span v-if="form.errors.days_of_week" class="error">{{ form.errors.days_of_week }}</span>
+            <span v-if="form.errors.days_of_week || Object.keys(form.errors).some((key) => key.startsWith('days_of_week.'))" class="error" role="alert">{{ form.errors.days_of_week || Object.entries(form.errors).find(([key]) => key.startsWith('days_of_week.'))?.[1] }}</span>
         </div>
 
         <div class="field">
@@ -68,9 +68,10 @@ const colors = ['#4f46e5', '#16a34a', '#dc2626', '#d97706', '#0891b2', '#7c3aed'
                         border: form.color === color ? '3px solid #1f2430' : '1px solid #e2e5ea',
                         cursor: 'pointer',
                     }"
-                    :aria-label="color"
+                    :aria-label="`Couleur ${color}`" :aria-pressed="form.color === color"
                 ></button>
             </div>
+            <span v-if="form.errors.color" class="error" role="alert">{{ form.errors.color }}</span>
         </div>
-    </div>
+    </fieldset>
 </template>

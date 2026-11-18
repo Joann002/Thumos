@@ -70,4 +70,21 @@ class CalendarTest extends TestCase
                 ->where('prev', ['year' => 2026, 'month' => 5])
                 ->where('next', ['year' => 2026, 'month' => 7]));
     }
+
+    public function test_invalid_month_and_day_inputs_are_validation_errors(): void
+    {
+        $this->get('/calendar?month=13&year=0')->assertSessionHasErrors(['month', 'year']);
+        $this->get('/calendar/not-a-date')->assertSessionHasErrors('date');
+    }
+
+    public function test_day_details_find_cast_dates_and_exclude_other_users(): void
+    {
+        $habit = $this->user->habits()->create(['name' => 'Lire', 'frequency' => 'daily']);
+        $habit->logs()->create(['date' => '2026-06-18', 'completed' => true]);
+        $this->user->goals()->create(['title' => 'Mon objectif', 'status' => 'active', 'target_date' => '2026-06-18']);
+        $this->user->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Mon journal']);
+        User::factory()->create()->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Privé']);
+        $this->get('/calendar/2026-06-18')->assertOk()->assertJsonPath('habits.0.completed', true)
+            ->assertJsonPath('goals.0.title', 'Mon objectif')->assertJsonPath('journal.content', 'Mon journal');
+    }
 }

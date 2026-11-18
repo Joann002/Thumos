@@ -7,6 +7,8 @@ use App\Models\GoalTask;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class GoalTaskController extends Controller
 {
@@ -18,10 +20,13 @@ class GoalTaskController extends Controller
             'title' => ['required', 'string', 'max:255'],
         ]);
 
-        $goal->tasks()->create([
-            'title' => $data['title'],
-            'order' => (int) $goal->tasks()->max('order') + 1,
-        ]);
+        DB::transaction(function () use ($goal, $data) {
+            $goal->newQuery()->whereKey($goal->id)->lockForUpdate()->firstOrFail();
+            $goal->tasks()->create([
+                'title' => $data['title'],
+                'order' => (int) $goal->tasks()->max('order') + 1,
+            ]);
+        });
 
         return back();
     }
@@ -54,13 +59,16 @@ class GoalTaskController extends Controller
         $this->authorizeGoal($goal);
 
         $data = $request->validate([
-            'ids' => ['required', 'array'],
-            'ids.*' => ['integer', 'exists:goal_tasks,id'],
+            'ids' => ['required', 'array', 'size:'.$goal->tasks()->count()],
+            'ids.*' => ['required', 'integer', 'distinct', Rule::exists('goal_tasks', 'id')->where('goal_id', $goal->id)],
         ]);
 
-        foreach ($data['ids'] as $position => $id) {
-            $goal->tasks()->whereKey($id)->update(['order' => $position + 1]);
-        }
+        DB::transaction(function () use ($goal, $data) {
+            $goal->newQuery()->whereKey($goal->id)->lockForUpdate()->firstOrFail();
+            foreach ($data['ids'] as $position => $id) {
+                $goal->tasks()->whereKey($id)->update(['order' => $position + 1]);
+            }
+        });
 
         return back();
     }

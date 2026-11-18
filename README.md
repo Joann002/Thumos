@@ -2,8 +2,8 @@
 
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20)](https://laravel.com)
 [![Vue](https://img.shields.io/badge/Vue-3-42B883)](https://vuejs.org)
-[![Inertia](https://img.shields.io/badge/Inertia.js-2-9553E9)](https://inertiajs.com)
-[![Vite](https://img.shields.io/badge/Vite-5-646CFF)](https://vitejs.dev)
+[![Inertia](https://img.shields.io/badge/Inertia.js-3-9553E9)](https://inertiajs.com)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF)](https://vitejs.dev)
 [![License](https://img.shields.io/badge/License-MIT-blue)](#licence)
 
 Application web pour centraliser ses objectifs personnels, suivre ses habitudes
@@ -45,7 +45,7 @@ heatmap SVG).
 - Statistiques de progression hebdomadaire / mensuelle
 - Rappels par email (Laravel Notifications)
 - Badges et récompenses pour les streaks
-- Recherche et tags dans le journal
+- Recherche dans le journal avec filtre d’humeur et pagination (disponible) ; tags à venir
 - Résumé hebdomadaire auto-généré
 - Partage d'objectifs avec un ami (accountability, multi-utilisateurs)
 
@@ -61,8 +61,8 @@ heatmap SVG).
 
 ## Prérequis
 
-- PHP >= 8.2 et [Composer](https://getcomposer.org)
-- [Node.js](https://nodejs.org) >= 18 et npm
+- PHP >= 8.3 et [Composer](https://getcomposer.org)
+- [Node.js](https://nodejs.org) >= 22.12 et npm
 - Une base de données (SQLite, MySQL ou PostgreSQL)
 
 ## Installation
@@ -149,7 +149,7 @@ Toutes les entités principales (`Goal`, `Habit`, `JournalEntry`) sont rattaché
 - [x] CRUD Goals + GoalTasks (checklist interactive avec drag & drop)
 - [x] CRUD Habits + interface « check du jour »
 - [x] Calcul et affichage des streaks
-- [x] Journal avec entrées datées
+- [x] Journal avec entrées datées, recherche par contenu, filtre d’humeur et pagination
 - [x] Vue calendrier combinant objectifs + habitudes
 - [x] Heatmap de complétion
 - [x] Notifications / rappels par email
@@ -182,8 +182,49 @@ php artisan app:send-habit-reminders
 php artisan test
 ```
 
-Les calculs de streaks et la logique métier sensible sont à couvrir en priorité
-par des tests unitaires.
+La suite exécute 79 tests PHP (312 assertions), dont les anciens tests
+réactivés pour PHPUnit 12 : les méthodes doivent commencer par `test_` (les
+anciennes annotations `@test` ne suffisent plus). La clé de chiffrement dans
+`phpunit.xml` est une valeur non secrète réservée aux tests ; elle ne doit
+jamais servir de clé d'application en production.
+
+Les contrôles frontend utilisent le runner intégré à Node, sans dépendance
+supplémentaire :
+
+```bash
+npm test
+npm run build
+```
+
+Les 8 tests frontend couvrent les dates civiles dans quatre fuseaux horaires,
+les dates relatives futures/passées et le rendu accessible des formulaires et
+barres de progression. Les parcours navigateur peuvent être vérifiés avec une
+base SQLite temporaire ; ne pas utiliser la base de production pour les tests.
+
+### Règles de données et suivi fiable
+
+- Objectifs : statuts `active`, `paused` et `done`. Une échéance aujourd'hui
+  n'est pas en retard ; seuls les objectifs actifs peuvent être en retard.
+- Habitudes hebdomadaires : au moins un jour ISO entre 1 (lundi) et 7
+  (dimanche), sans doublon. Les jours d'une habitude quotidienne sont remis
+  à `null`. La couleur doit être un code hexadécimal `#RRGGBB`.
+- Un log `completed=false` ne compte pas comme une réussite. Le basculer le
+  marque comme réalisé ; les dates futures et les jours non prévus sont
+  refusés. Les séries et la heatmap ignorent les réalisations futures.
+- Une période de 30 jours contient exactement 30 dates, aujourd'hui inclus.
+  Les statistiques excluent les jours non prévus et restent entre 0 et 100 %.
+  Le calcul charge les logs en une seule requête plutôt qu'une requête par jour.
+- Réordonner des sous-tâches exige la liste complète et sans doublon des tâches
+  du même objectif ; les mises à jour sont appliquées dans une transaction.
+- Journal : dates au format `AAAA-MM-JJ`, contenu limité à 5000 caractères,
+  humeurs `great`, `good`, `neutral`, `bad` ou `awful`. Les filtres `q` (200
+  caractères maximum) et `mood` sont conservés dans les liens de pagination.
+  Chaque page contient au maximum 15 entrées de l'utilisateur connecté.
+- Les champs de formulaires sont verrouillés pendant l'envoi, les erreurs
+  sont reliées aux champs, et les contrôles de sélection annoncent leur état.
+  La fenêtre du calendrier s'ouvre au clavier, maintient le focus et le
+  restitue à la fermeture. Les recherches et détails restent privés à
+  l'utilisateur connecté.
 
 ## Contribution
 

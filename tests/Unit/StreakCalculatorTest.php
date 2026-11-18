@@ -15,17 +15,18 @@ class StreakCalculatorTest extends TestCase
     use RefreshDatabase;
 
     private StreakCalculator $calculator;
+
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->calculator = new StreakCalculator();
+        Carbon::setTestNow('2026-06-19');
+        $this->calculator = new StreakCalculator;
         $this->user = User::factory()->create();
     }
 
-    /** @test */
-    public function it_calculates_zero_streak_for_habit_with_no_logs()
+    public function test_it_calculates_zero_streak_for_habit_with_no_logs()
     {
         $habit = Habit::factory()->create([
             'user_id' => $this->user->id,
@@ -37,8 +38,7 @@ class StreakCalculatorTest extends TestCase
         $this->assertEquals(0, $streak);
     }
 
-    /** @test */
-    public function it_calculates_current_streak_for_consecutive_days()
+    public function test_it_calculates_current_streak_for_consecutive_days()
     {
         $habit = Habit::factory()->create([
             'user_id' => $this->user->id,
@@ -59,8 +59,7 @@ class StreakCalculatorTest extends TestCase
         $this->assertEquals(5, $streak);
     }
 
-    /** @test */
-    public function it_breaks_streak_on_missed_day()
+    public function test_it_breaks_streak_on_missed_day()
     {
         $habit = Habit::factory()->create([
             'user_id' => $this->user->id,
@@ -97,8 +96,7 @@ class StreakCalculatorTest extends TestCase
         $this->assertEquals(2, $streak);
     }
 
-    /** @test */
-    public function it_calculates_longest_streak()
+    public function test_it_calculates_longest_streak()
     {
         $habit = Habit::factory()->create([
             'user_id' => $this->user->id,
@@ -130,8 +128,7 @@ class StreakCalculatorTest extends TestCase
         $this->assertEquals(10, $longest);
     }
 
-    /** @test */
-    public function it_respects_weekly_habit_schedule()
+    public function test_it_respects_weekly_habit_schedule()
     {
         $habit = Habit::factory()->create([
             'user_id' => $this->user->id,
@@ -139,8 +136,8 @@ class StreakCalculatorTest extends TestCase
             'days_of_week' => [1, 3, 5], // Mon, Wed, Fri
         ]);
 
-        $monday = Carbon::parse('next monday');
-        
+        $monday = Carbon::today()->startOfWeek();
+
         // Complete Monday, Wednesday, Friday
         HabitLog::create([
             'habit_id' => $habit->id,
@@ -164,5 +161,11 @@ class StreakCalculatorTest extends TestCase
         $streak = $this->calculator->current($habit);
 
         $this->assertEquals(3, $streak);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 }

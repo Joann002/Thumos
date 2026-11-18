@@ -1,6 +1,8 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
 import Icon from '../../Components/Icon.vue';
+import { computed, ref } from 'vue';
+import { useDateFormatter } from '../../Composables/useDateFormatter';
 
 const props = defineProps({
     habits: {
@@ -13,11 +15,9 @@ const props = defineProps({
     },
 });
 
-const todayLabel = new Date(props.today).toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-});
+const { formatDate } = useDateFormatter();
+const todayLabel = computed(() => formatDate(props.today, { weekday: 'long' }));
+const pending = ref([]);
 
 const frequencyLabels = {
     daily: 'Quotidienne',
@@ -25,9 +25,11 @@ const frequencyLabels = {
 };
 
 const toggle = (habit) => {
+    if (pending.value.includes(habit.id) || habit.is_due_today === false) return;
+    pending.value.push(habit.id);
     router.post(`/habits/${habit.id}/toggle`, {}, {
         preserveScroll: true,
-        onSuccess: () => (habit.done_today = !habit.done_today),
+        onFinish: () => { pending.value = pending.value.filter((id) => id !== habit.id); },
     });
 };
 
@@ -51,10 +53,11 @@ const remove = (habit) => {
         <div v-if="habits.length" class="stack">
             <div v-for="habit in habits" :key="habit.id" class="card row row--between">
                 <label class="row" style="cursor: pointer; gap: 0.75rem; min-width: 0; flex: 1">
-                    <input type="checkbox" :checked="habit.done_today" @change="toggle(habit)" />
+                    <input type="checkbox" :checked="habit.done_today" :disabled="pending.includes(habit.id) || habit.is_due_today === false" @change="toggle(habit)" />
                     <span class="dot" :style="{ background: habit.color || 'var(--primary)' }"></span>
                     <span style="min-width: 0">
                         <strong :style="{ textDecoration: habit.done_today ? 'line-through' : 'none' }">{{ habit.name }}</strong>
+                        <span v-if="habit.is_due_today === false" class="badge">Non prévue aujourd’hui</span>
                         <span class="muted"> · {{ frequencyLabels[habit.frequency] }}</span>
                         <span class="row" style="gap: 0.35rem; font-size: 0.82rem; color: var(--muted); margin-top: 0.15rem">
                             <Icon name="flame" :size="14" />
@@ -64,8 +67,8 @@ const remove = (habit) => {
                     </span>
                 </label>
                 <div class="row" style="gap: 0.4rem">
-                    <Link :href="`/habits/${habit.id}/edit`" class="icon-btn" title="Modifier"><Icon name="edit" :size="16" /></Link>
-                    <button class="icon-btn" title="Supprimer" @click="remove(habit)"><Icon name="trash" :size="16" /></button>
+                    <Link :href="`/habits/${habit.id}/edit`" class="icon-btn" aria-label="Modifier l’habitude"><Icon name="edit" :size="16" /></Link>
+                    <button type="button" class="icon-btn" aria-label="Supprimer l’habitude" @click="remove(habit)"><Icon name="trash" :size="16" /></button>
                 </div>
             </div>
         </div>

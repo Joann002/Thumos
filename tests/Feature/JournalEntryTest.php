@@ -94,4 +94,31 @@ class JournalEntryTest extends TestCase
 
         $this->get("/journal/{$entry->id}/edit")->assertForbidden();
     }
+
+    public function test_search_and_mood_filters_remain_scoped_to_the_current_user(): void
+    {
+        $this->user->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Lecture agréable', 'mood' => 'good']);
+        $this->user->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Autre activité', 'mood' => 'bad']);
+        User::factory()->create()->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Lecture privée', 'mood' => 'good']);
+        $this->get('/journal?q=Lecture&mood=good')->assertInertia(fn ($page) => $page
+            ->has('entries.data', 1)->where('entries.data.0.content', 'Lecture agréable')
+            ->where('filters.q', 'Lecture')->where('entries.total', 1));
+    }
+
+    public function test_journal_paginates_and_keeps_filters_in_navigation(): void
+    {
+        for ($i = 0; $i < 16; $i++) {
+            $this->user->journalEntries()->create(['date' => '2026-06-18', 'content' => 'Lecture '.$i, 'mood' => 'good']);
+        }
+        $this->get('/journal?q=Lecture')->assertInertia(fn ($page) => $page->has('entries.data', 15)
+            ->where('entries.total', 16)->where('entries.last_page', 2)
+            ->where('entries.next_page_url', fn ($url) => str_contains($url, 'q=Lecture')));
+    }
+
+    public function test_journal_rejects_oversized_content_and_non_calendar_dates(): void
+    {
+        $this->post('/journal', ['date' => 'tomorrow', 'content' => str_repeat('x', 5001), 'mood' => 'excellent'])
+            ->assertSessionHasErrors(['date', 'content', 'mood']);
+        $this->assertDatabaseCount('journal_entries', 0);
+    }
 }

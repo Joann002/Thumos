@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreHabitRequest;
+use App\Http\Requests\UpdateHabitRequest;
 use App\Models\Habit;
 use App\Services\StreakCalculator;
 use Illuminate\Http\RedirectResponse;
@@ -24,8 +26,9 @@ class HabitController extends Controller
             ->map(function (Habit $habit) use ($today, $streaks) {
                 $habit->setAttribute(
                     'done_today',
-                    $habit->logs->contains(fn ($log) => $log->date->isSameDay($today)),
+                    $habit->logs->contains(fn ($log) => $log->completed && $log->date->isSameDay($today)),
                 );
+                $habit->setAttribute('is_due_today', $habit->isDueOn($today));
                 $habit->setAttribute('current_streak', $streaks->current($habit));
                 $habit->setAttribute('longest_streak', $streaks->longest($habit));
                 $habit->unsetRelation('logs');
@@ -44,9 +47,9 @@ class HabitController extends Controller
         return Inertia::render('Habits/Create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreHabitRequest $request): RedirectResponse
     {
-        $request->user()->habits()->create($this->validateHabit($request));
+        $request->user()->habits()->create($request->validated());
 
         return redirect()->route('habits.index')
             ->with('success', 'Habitude créée.');
@@ -61,11 +64,11 @@ class HabitController extends Controller
         ]);
     }
 
-    public function update(Request $request, Habit $habit): RedirectResponse
+    public function update(UpdateHabitRequest $request, Habit $habit): RedirectResponse
     {
         $this->authorizeOwner($habit);
 
-        $habit->update($this->validateHabit($request));
+        $habit->update($request->validated());
 
         return redirect()->route('habits.index')
             ->with('success', 'Habitude mise à jour.');
@@ -84,19 +87,5 @@ class HabitController extends Controller
     private function authorizeOwner(Habit $habit): void
     {
         abort_if($habit->user_id !== Auth::id(), 403);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function validateHabit(Request $request): array
-    {
-        return $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'frequency' => ['required', 'in:daily,weekly'],
-            'days_of_week' => ['nullable', 'array'],
-            'days_of_week.*' => ['integer', 'between:1,7'],
-            'color' => ['nullable', 'string', 'max:20'],
-        ]);
     }
 }

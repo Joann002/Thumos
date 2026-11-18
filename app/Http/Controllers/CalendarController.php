@@ -17,6 +17,10 @@ class CalendarController extends Controller
 {
     public function index(Request $request): Response
     {
+        $request->validate([
+            'year' => ['sometimes', 'integer', 'between:1900,2100'],
+            'month' => ['sometimes', 'integer', 'between:1,12'],
+        ]);
         $today = Carbon::today();
         $userId = $request->user()->id;
 
@@ -76,17 +80,19 @@ class CalendarController extends Controller
 
     public function show(Request $request, string $date): JsonResponse
     {
+        validator(['date' => $date], ['date' => ['required', 'date_format:Y-m-d']])->validate();
         $userId = $request->user()->id;
         $targetDate = Carbon::parse($date);
 
         // Récupérer les habitudes et leurs logs pour cette date
         $habits = Habit::where('user_id', $userId)
             ->with(['logs' => function ($query) use ($date) {
-                $query->where('date', $date);
+                $query->whereDate('date', $date);
             }])
             ->get()
             ->map(function (Habit $habit) use ($targetDate) {
                 $log = $habit->logs->first();
+
                 return [
                     'id' => $habit->id,
                     'name' => $habit->name,
@@ -98,7 +104,7 @@ class CalendarController extends Controller
 
         // Récupérer les objectifs avec échéance ce jour-là
         $goals = Goal::where('user_id', $userId)
-            ->where('target_date', $date)
+            ->whereDate('target_date', $date)
             ->with(['tasks' => function ($query) {
                 $query->orderBy('order');
             }])
@@ -120,7 +126,7 @@ class CalendarController extends Controller
 
         // Récupérer l'entrée de journal pour cette date
         $journal = JournalEntry::where('user_id', $userId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
 
         return response()->json([
