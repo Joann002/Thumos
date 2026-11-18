@@ -3,56 +3,31 @@
 namespace App\Services;
 
 use App\Models\Habit;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class HabitAnalyzer
 {
-    public function __construct(private StreakCalculator $streakCalculator)
-    {
-    }
+    public function __construct(private StreakCalculator $streakCalculator) {}
 
     /**
      * Get detailed analytics for a habit
      */
     public function getAnalytics(Habit $habit, int $days = 30): array
     {
-        $logs = $habit->logs()
-            ->where('date', '>=', Carbon::today()->subDays($days))
-            ->where('completed', true)
-            ->get();
-
-        $expectedDays = $this->countExpectedDays($habit, $days);
-        $completedDays = $logs->count();
+        $summary = $habit->completionSummary($days);
+        $expectedDays = $summary['expected'];
+        $completedDays = $summary['completed'];
 
         return [
             'current_streak' => $this->streakCalculator->current($habit),
             'longest_streak' => $this->streakCalculator->longest($habit),
             'total_completions' => $this->streakCalculator->totalCompletions($habit),
-            'completion_rate' => $habit->getCompletionRate($days),
+            'completion_rate' => $summary['rate'],
             'expected_days' => $expectedDays,
             'completed_days' => $completedDays,
             'missed_days' => $expectedDays - $completedDays,
             'period_days' => $days,
         ];
-    }
-
-    /**
-     * Count expected days for a habit in a period
-     */
-    private function countExpectedDays(Habit $habit, int $days): int
-    {
-        $count = 0;
-        $startDate = Carbon::today()->subDays($days);
-
-        for ($i = 0; $i < $days; $i++) {
-            $date = $startDate->copy()->addDays($i);
-            if ($habit->isDueOn($date)) {
-                $count++;
-            }
-        }
-
-        return $count;
     }
 
     /**
